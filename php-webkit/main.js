@@ -1,111 +1,71 @@
-var phpwebkit = {
+'use strict';
 
-	runApp: function(){
+var win = nw.Window.get();
 
-		var gui = require('nw.gui');
-		var win = gui.Window.get();
-		var os = require('os');
-		var os = os.platform();
-		var pw = this;
-        var fs = require('fs');
+var cwd = process.cwd();
+var fs = require('fs');
 
-		process.on('uncaughtException', function(err){
-			pw.changeState('<strong>'+err+'</strong>', '#CD0000');
-		});
+win.on('loaded', () => {
+	if (/sdk/.test(process.versions['nw-flavor'])) win.showDevTools();
+	app_init();
+});
 
-		win.title = gui.App.manifest.name;
+function app_init() {
+	var cfg = nw.App.manifest['php-nwjs'];
 
-		var bin = gui.App.manifest.phpwebkit.bin;
-		if(bin === undefined || bin == "") {
-			if(os == 'win32' || os == 'win64') {
-				bin = './bin/php/php-cgi.exe';
-			} else if(os == 'darwin') {
-				bin = './bin/php/php-cgi';
-			} else if(os == 'linux') {
-				bin = './bin/php/php-cgi';
-			} else {
-				bin = 'php-cgi';
-			}
+	process.on('uncaughtException', (err) => {
+		win.window.alert('Error: ' + err);
+	});
+
+	cfg.php_binary = cfg.php_binary || '';
+	if(cfg.php_binary == '') {
+		if(/^win/.test(require('os').platform())) {
+			cfg.php_binary = cwd + '/bin/php/php-cgi.exe';
+		} else {
+			cfg.php_binary = cwd + '/bin/php/php-cgi';
 		}
-        var path = process.cwd() + bin.slice(1);
-        if(fs.existsSync(path)){
-            // set the permissions to be able to execute
-            fs.chmodSync(path, 0755);
-        }
-
-		this.fileExists(bin, function(result){
-			if(result === false) { 
-				return 'php-cgi';
-			}
-		});
-
-		var path = gui.App.manifest.phpwebkit.path;
-		if(path === undefined || path == "") {
-			path = './application';
-		}
-
-		var host = gui.App.manifest.phpwebkit.host;
-		if(host === undefined || host == "") {
-			host = 'localhost';
-		}
-
-		var port = gui.App.manifest.phpwebkit.port;
-		if(port === undefined || port == "") {
-			port = 0;
-		}
-
-		var config = {
-			"path": path,
-			"bin": bin,
-			"host": host,
-			"port": port,
-			"arguments": gui.App.argv,
-			"manifest": gui.App.manifest
-		}
-
-		this.startServer(config);
-	},
-
-	startServer: function(config, callback){
-		
-		var http = require('http');
-		var php = require('../lib/bridge');
-		var express = require('express');
-		var app = express();
-		var host = config.host;
-		var port = config.port;
-		var pw = this;
-
-		var server = http.createServer(app);
-
-		app.use('/', php.cgi(config));
-
-		server.listen(port, host, function(){
-			pw.changeState('Starting application...', '#00CD00');
-			window.location = 'http://'+host+':'+server.address().port +'/';
-		}).on('error', function(err) {
-			pw.changeState('<strong>Error: '+server.err+'</strong>', '#CD0000');
-		});
-	},
-
-	changeState: function(msg, color){
-		
-		$('body').css('background-color', color);
-		$('#loading p').html(msg);
-	},
-
-	fileExists: function(file, callback){
-		
-		var fs = require('fs');
-		fs.stat(file, function(err, stats) { 
-			if(!err && stats.isFile()) { 
-				return true;
-			} else {
-				return false;
-			}
-		});
 	}
 
-};
+  if (fs.statSync(cfg.php_binary)) {
+  	try	{
+  		fs.accessSync(cfg.php_binary, fs.constants.X_OK);
+  	} catch(err) {
+  		// throw alert('Error: PHP binary is not executable. ' + err);
+  		fs.chmodSync(cfg.php_binary, 0o755);
+  	}
+  } else {
+  	throw win.window.alert('Error: PHP binary not found');
+  }
 
-phpwebkit.runApp();
+  cfg.server_protocol = cfg.server_protocol || 'http';
+	cfg.server_host = cfg.server_host || 'localhost';
+	cfg.server_port = cfg.server_port || 9090;
+	cfg.htdocs = cfg.htdocs || (cfg.htdocs === '' ? './htdocs' : cfg.htdocs);
+
+	run_server({
+		'path': cfg.htdocs,
+		'bin': cfg.php_binary,
+		'host': cfg.server_host,
+		'port': cfg.server_port,
+		'server_protocol': cfg.server_protocol,
+		'server_host': cfg.server_host,
+		'server_port': cfg.server_port,
+		'arguments': nw.App.argv,
+		'manifest': nw.App.manifest
+	});
+}
+
+function run_server(params) {
+	var http = require('http');
+	var php = require(cwd + '/lib/bridge');
+	var express = require('express')();
+	var server = http.createServer(express);
+
+	express.use('/', php.cgi(params));
+
+	server.listen(params.server_port, params.server_host, () => {
+		win.window.location = params.server_protocol + '://' + params.server_host + ':' + params.server_port + '/';
+	}).on('error', (err) => {
+		win.window.alert('Error: ' + server.err);
+	});
+}

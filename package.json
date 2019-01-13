@@ -1,30 +1,25 @@
 {
-  "name": "php-webkit",
-  "description": "Allows you to run PHP within node-webkit.",
+  "name": "php-nwjs",
+  "description": "Allows you to run PHP within NW.js",
   "version": "0.0.1",
-  "dependencies":{
-    "express":"4.*.*"
+  "dependencies": {
+    "express": "~4"
   },
-  "scripts": {
-    "test":"node ./node_modules/gulp/bin/gulp.js test"
-  },
-  "devDependencies": {
-    "mocha": "1.*",
-    "must": ">= 0.11 < 1",
-    "gulp": "3.*",
-    "gulp-jshint": "1.*",
-    "gulp-mocha": "0.*",
-    "jshint-stylish": "0.*"
-  },
+  "scripts": {},
+  "devDependencies": {},
+  "node-remote---refference": "https://developer.chrome.com/extensions/match_patterns",
+  "node-remote---note": "accepts all remote URL",
+  "node-remote": "*://*/*",
   "main": "./php-webkit/index.html",
-  "node-remote": "<local>",
-  "phpwebkit": {
-  	"bin": "",
-  	"path": "./application",
-  	"host": "localhost",
-    "port": 9090
+  "php-nwjs": {
+    "path": "/var/www/aku/pgw/htdocs",
+    "host": "localhost",
+    "port": 9090,
+    "htdocs": "./htdocs",
+    "server_host": "localhost",
+    "server_port": 9090
   },
-  "license":"MIT",
+  "license": "MIT",
   "window": {
     "toolbar": false,
     "position": "center"

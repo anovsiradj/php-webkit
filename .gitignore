@@ -1,3 +1,7 @@
+# binaries
+/bin/*
+!/bin/php-build-linux-params.txt
+
 # OS X
 .DS_Store*
 Icon?

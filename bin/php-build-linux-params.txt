@@ -1,0 +1,30 @@
+refference:
+https://docs.moodle.org/35/en/Compiling_PHP_from_source
+"--prefix=?" is important.
+
+notes:
+compiled with only "sqlite" extension.
+
+$
+./configure \
+--prefix=/full/path/to/my/project/bin/ \
+--bindir=/full/path/to/my/project/bin/php/ \
+--disable-posix \
+--disable-phar \
+--disable-pdo \
+--disable-ctype \
+--disable-dom \
+--disable-libxml \
+--disable-simplexml \
+--disable-short-tags \
+--disable-xml \
+--disable-xmlwriter \
+--disable-xmlreader \
+--disable-mysqlnd-compression-support \
+--without-cdb \
+--without-iconv \
+--without-pdo-sqlite \
+--without-pear
+
+$
+make install
